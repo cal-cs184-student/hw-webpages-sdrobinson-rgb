@@ -187,15 +187,104 @@
 		</figure>
 
 		<h2>Task 4: Barycentric coordinates</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+		<p>
+		Barycentric coordinates are a series of three values, \(\alpha\), \(\beta\), and \(\gamma\), each of which
+		representing the distance from its respective vertex as a proportion of the distance from said vertex to
+		the opposite side of the triangle, where a value of 1 means being on top of the vertex, a value of 0 means
+		being on the opposite side, and any value outside the range [0, 1] means the vertex is outside of the triangle.
+		</p>
+
+		<p>
+			The three values can also be thought of as the percentage that a vertex's coordinates contribute to
+			the coordinate of a given point, since they must sum to 1 and the coordinate of a point given its
+			barycentric coordinates can be calculated as the sum of each vertex, vectorized, times its respective
+			barycentric coordinate. This principle is demonstrated in the below RGB triangle (which was displayed
+			using the <code>rasterize_interpolated_color_triangle</code> function).
+		</p>
+
+		<figure>
+			<img src="screenshot_2-17_21-13-51.png" alt="rgb barycentric triangle" style="width:50%"/>
+			<figcaption> Each vertex is assigned a color, and all pixels in between use their
+				<br> barycentric coordinates to determine a weighted average of those colors.
+			</figcaption>
+		</figure>
+
+		<p>
+			This triangle demonstrates barycentric coordinates visually, showing how they can be used
+			in linear interpolation (in this case, linearly interpolating a color). It also demonstrates
+			the function I implemented in this task, <code>rasterize_interpolated_color_triangle</code>, which
+			uses barycentric coordinates to make its calculations when rasterizing these multicolor triangles.
+			The following image uses this function and many triangles to create a smooth color wheel:
+		</p>
+
+		<figure>
+			<img src="screenshot_2-17_21-8-40.png" alt="color wheel" style="width:50%"/>
+			<figcaption> A color wheel formed from a series of linearly interpolated three-color <br>
+				triangles using barycentric coordinates, sampled with one sample per pixel.
+			</figcaption>
+		</figure>
 
 		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		
+		<p>
+			Pixel sampling uses a coordinate map, in this case, barycentric coordinates, to associate a point
+			on a triangle to a point on the texture we want to map on it. The rasterization function I implemented
+			for this part, <code>rasterize_textured_triangle</code>, takes six total coordinates (twelve total points),
+			three for the triangle and three corresponding to points on the texture. By converting the triangle
+			coordinates first into barycentric coordinates and then converting those barycentric coordinates to
+			texture coordinates (given as a percentage that would need to be multiplied by the width/height
+			of the texture), I can map any sample within the triangle to a sampling point on the provided texture.
+		</p>
+
+		<p>
+			The point is then given to a separate sampling function within the <code>Texture</code> struct, which
+			tells the rasterizer what color value to give that sample. For this process, I implemented two different
+			methods of sampling. Nearest sampling simply takes the value of the pixel in the texture closest to the
+			provided point. Bilinear sampling uses two linear interpolation calculations (technically three) to
+			compute a weighted average of the four samples closest to the given point. Predictably, bilinearly sampled
+			textures tend to have less artifacts.
+		</p>
+
+		<p style="text-align: center">A world map, displayed using texture sampling, with various sampling <br> 
+		                              methods and sampling frequencies. The pixel inspector shows a spot along <br>
+									  the right side of Africa</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_21-27-5.png" width="360px"/>
+				  <figcaption>Nearest sampling with 1 sample per pixel</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_21-27-15.png" width="360px"/>
+				  <figcaption>Nearest sampling with 16 samples per pixel</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_21-27-21.png" width="360px"/>
+				  <figcaption>Bilinear sampling with 1 sample per pixel</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_21-27-26.png" width="360px"/>
+				  <figcaption>Bilinear sampling with 16 samples per pixel</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>The first column in the table above shows the difference bilinear sampling makes. The bilinearly sampled
+			image is much cleaner and more smooth than the other; this is especially apparent in the vertical white
+			lines that show in the pixel inspector. Bilinear sampling will have the most dramatic effect
+			when sampling from a texture with relatively high detail, since a lot of information would 
+			otherwise be lost. In the second column, the difference between the two images is much less pronounced.
+			This is expected, since both supersampling and bilinear interpolation work by averaging adjacent samples
+			at their respective places in the rasterization pipeline, so there is a certain level of diminishing returns
+			that happens when applying both of them. 
+		</p>
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>(Optional) Task 7: Extra Credit - Draw Something Creative!</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 		<h2>Additional Notes (please remove)</h2>
