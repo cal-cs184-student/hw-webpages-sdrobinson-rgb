@@ -34,6 +34,11 @@
 			code {
 				color: chartreuse;
 			}
+			@media print {
+				code {
+					color: forestgreen;
+				}
+			}
 		</style>
 	</head>
 	<body>
@@ -59,7 +64,13 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		<p>
+			Homework 1 was to build a C++ image rasterizer capable of displaying SVG files. Throughout the homework
+			I implemented a multitude of functions to rasterize triangles; by completing all the tasks
+			I gave my rasterizer the ability to display solid color triangles, gradients, and texture
+			mapped triangles with a variety of antialiasing techniques at all levels. This homework made me think a lot
+			about the importance of sampling and understanding different sampling techniques when rasterizing triangles.
+		</p>
 
 		<h2>Task 1: Drawing Single-Color Triangles</h2>
 		<p>In Task 1, I implemented a simplified tringle rasterization algorithm which took a single sample from the middle 
@@ -79,7 +90,7 @@
 			the maximum and minimum of the x and y values for all three points, the x range determining the left and right sides
 			of the bounding box and the y range determining the top and bottom. When running the line tests on the points, the for loops
 			I used to iterate through the points start at the beginning of the bounding box and end at the other edge (going from left
-			to right and top to bottom, in the direction of increasing coordinates on both axis).
+			to right and top to bottom, in the direction of increasing coordinates on both axes).
 		</p>
 		
 		<figure>
@@ -123,11 +134,11 @@
 			As such, its size is the number of pixels in the frame buffer (AKA the screen) multiplied by the sample rate. The triangle
 			rasterization from Task 1 now writes to the sample buffer, taking multiple samples per point as determined by the sample
 			rate. To implement supersampling when rendering the sample buffer, I had to alter the provided implementation of the
-			<code>resolve_to_framebuffer</code> function so that it took an average of all sample buffer points within a framebuffer
+			<code>resolve_to_framebuffer</code> function so that it takes an average of all sample buffer points within a framebuffer
 			pixel, as opposed to reading directly from the sample buffer (which only works when the sample rate is 1). Some other
 			changes include altering the provided <code>rasterize_point</code> function to write to the entire square of samples
-			representing that point in the sample buffer, and implementing the functions that resized the sample buffer when the
-			sample rate changed.
+			representing that point in the sample buffer, and implementing the functions that resize the sample buffer when the
+			sample rate changes.
 		</p>
 
 		<p>
@@ -190,7 +201,7 @@
 
 		<p>
 		Barycentric coordinates are a series of three values, \(\alpha\), \(\beta\), and \(\gamma\), each of which
-		representing the distance from its respective vertex as a proportion of the distance from said vertex to
+		represents the distance from its respective vertex as a proportion of the distance from said vertex to
 		the opposite side of the triangle, where a value of 1 means being on top of the vertex, a value of 0 means
 		being on the opposite side, and any value outside the range [0, 1] means the vertex is outside of the triangle.
 		</p>
@@ -277,7 +288,7 @@
 		<p>The first column in the table above shows the difference bilinear sampling makes. The bilinearly sampled
 			image is much cleaner and more smooth than the other; this is especially apparent in the vertical white
 			lines that show in the pixel inspector. Bilinear sampling will have the most dramatic effect
-			when sampling from a texture with relatively high detail, since a lot of information would 
+			when taking a low amount of samples from a texture with relatively high detail, since a lot of information would 
 			otherwise be lost. In the second column, the difference between the two images is much less pronounced.
 			This is expected, since both supersampling and bilinear interpolation work by averaging adjacent samples
 			at their respective places in the rasterization pipeline, so there is a certain level of diminishing returns
@@ -285,18 +296,59 @@
 		</p>
 
 		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			For Task 6 I implemented sampling with mipmaps. Mipmaps are used in texture sampling to scale down 
+			parts of the image 'far away' from the 'camera.' The data in a mipmap is the texture image, followed
+			by the pixels scaled down by half, followed by the pixels scaled down by half again, and so on. The
+			'level' of a mipmap is how many times the image is scaled down by half, so level zero is the full
+			scale texture. The level is calculated based on the relative distance between where samples appear in
+			the texture, so parts of the image with higher sampling rates will still sample from the full resolution
+			image, while parts of the image with lower sampling rates will sample from lower resolution versions.
+			This practice reduces artifacts in further parts of a mapped texture for the same reasons supersampling
+			does.
+		</p>
 
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+		<p>
+			Our original sampling technique was sampling exclusively from the full resolution texture, AKA level
+			zero. The other two sampling techniques, sampling from the nearest mipmap level, and linearly interpolating
+			from the two closest mipmap levels, required me to implement the <code>get_level</code> function,
+			which returned a float value for the mipmap level based on the distance between samples. Nearest level
+			sampling samples rounds this value and samples from that level. Linear sampling samples from the 
+			levels above and below this level and performs a linear interpolation. Linear sampling is the 'best
+			looking' method, but it is computationally costly compared to nearest level sampling, which works
+			fine in most cases. Using minmaps in general slightly increases memory usage, but only by a factor of
+			\(\frac{1}{3}\) (\(1 \frac{1}{3}\) times the original texture size), so it is a relatively memory efficient
+			way of reducing artifacts in images with different texture distances.
+		</p>
+
+		<p style="text-align: center">Me going mini golving! Mapped onto texture test 1 with various level <br>
+			                          and pixel sampling methods. The pixel inspector shows the brick wall in the <br>
+									  bottom left corner.
+		</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_22-46-41.png" width="360px"/>
+				  <figcaption>Level zero with nearest sampling.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_22-47-4.png" width="360px"/>
+				  <figcaption>Level zero with bilinear sampling.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_22-47-16.png" width="360px"/>
+				  <figcaption>Nearest level with nearest sampling.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="screenshot_2-17_22-47-25.png" width="360px"/>
+				  <figcaption>Nearest level with bilinear sampling.</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
 		</div>
 	</body>
 </html>
