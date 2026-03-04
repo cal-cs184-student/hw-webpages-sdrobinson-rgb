@@ -22,21 +22,37 @@
 
 			body {
 				font-family: 'Inter', sans-serif;
+				background-color: #181A1B;
+				color: white; 
+			}
+			a:link {
+				color: skyblue;
+			}
+			a:visited {
+				color: mediumorchid;
+			}
+			code {
+				color: chartreuse;
+			}
+			@media print {
+				code {
+					color: forestgreen;
+				}
 			}
 		</style>
 	</head>
 	<body>
 		<div class="container">
-		<h1>CS184/284A Spring 2025 Homework 2 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<h1>CS184 Spring 2025 Homework 2 Write-Up</h1>
+		<div style="text-align: center;">Names: Skylar Robinson</div>
 
 		<br>
 
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to webpage: <a href="https://cal-cs184-student.github.io/hw-webpages-sdrobinson-rgb/">cal-cs184-student.github.io/hw-webpages-sdrobinson-rgb/</a>
 
 		<br>
 		
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw2-meshedit-for_skylar/">github.com/cal-cs184-student/hw2-meshedit-for_skylar/</a>
 
 		<figure>
 			<img src="teapot.png" alt="Teapot" style="width:50%"/>
@@ -53,44 +69,171 @@
 		<h2>Section I: Bezier Curves and Surfaces</h2>
 
 		<h3>Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			For Part 1, I implemented the function <code>evaluateStep</code>, which evaluates a single level of recursion in
+			Casteljau's algorithm. This is used by the GUI to visualize each recursive step of how the algorithm 
+			evaluates a point on a Bezier curve.
+		</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+		<p>
+			The algorithm works by taking the \(n\) control points of a Bezier curve and performing a linear interpolation with 
+			some value \(t\) in the range \([0, 1]\) between adjacent control points to get \(n - 1\) linearly interpolated points.
+			This process is then performed recursively for each new set of points until only one point remains, and the resulting
+			point will be a point on the Bezier curve. Casteljau's algorithm can be used to evaluate Bezier curves since various
+			\(t\) values give different points along the curve, meaning any point on a Bezier curve can be recovered with
+			Casteljau's algorithm given an appropriate value for \(t\).
+		</p>
+
+		<p>
+			For any given execution of Casteljau's algorithm on \(n\) control points, \(n - 1\) sets of linear interpolations must
+			be completed. For the following example, the curve is defined by 6 control points, meaning 5 calls to
+			<code>evaluateStep</code> can define a point.
+		</p>
+
+		<p>Casteljau's algorithm evaluates a point on the Bezier curve defined by the six conrol points.</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-03-03 181606.png" width="300px"/>
+				  <figcaption>Control points</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-03-03 181608.png" width="300px"/>
+				  <figcaption>First level of recursion</figcaption>
+				</td>
+					<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 181611.png" width="300px"/>
+				  <figcaption>Second level of recursion</figcaption>
 				</td>
 			  </tr>
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-03-03 181613.png" width="300px"/>
+				  <figcaption>Third level of recursion</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-03-03 181616.png" width="300px"/>
+				  <figcaption>Fourth level of recursion</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 181619.png" width="300px"/>
+				  <figcaption>Fifth level of recursion -- final point</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>The point calculated above is on the Bezier curve (shown in green).</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 181619.png" width="350px"/>
+				  <figcaption>Bezier curve hidden</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 181623.png" width="350px"/>
+				  <figcaption>Bezier curve shown</figcaption>
+				</td>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>
+			Altering the control points of a curve will change the curve. Altering \(t\) does not affect the curve,
+			but will change the point given by performing Casteljau's algorithm, essentially 'sliding' it along
+			the resulting Bezier curve.
+		</p>
+
+		<p>A new curve defined by changing the first and last control points of the above example.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 182659.png" width="350px"/>
+				  <figcaption>Changing control points changes the curve</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 182711.png" width="350px"/>
+				  <figcaption>Changing \(t\) moves the red point along the curve</figcaption>
+				</td>
 				</td>
 			  </tr>
 			</table>
 		</div>
 
 		<h3>Part 2: Bezier surfaces with separable 1D de Casteljau</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			Casteljau's algorithm for evaluating Bezier curves can be extended to Bezier surfaces by performing the algorithm 
+			first in one dimension and using the calculated result to extend it into the second dimension of the surface. That
+			is, for a 2D grid of points, individual rows of those points can be treated as 1D Bezier curves which we can evaluate
+			a point some \(t\) along the curve using Casteljau's algorithm. Then, given a series of evaluated points for each of
+			these rows, we can define a perpendicular 1D Bezier curve, which we can again use Casteljau's algorithm on. Thus,
+			for any two values of \(t\), defined as \((u, v)\), we can evaluate that respective point on the Bezier surface using
+			this method.
+		</p>
+
+		<p>
+			My implementation of this process uses three functions, <code>evaluateStep</code>, which calculates a single set of 
+			linear interpolations for a single Bezier curve of 3D points, <code>evaluate1D</code>, which uses a series of 
+			<code>evaluateStep</code> calls to evaluate a point on a single 'row' of control points, as described above, and
+			<code>evaluate</code>, which uses a series of <code>evaluate1D</code> calls to define a perpendicular Bezier curve,
+			and one final <code>evaluate1D</code> call to get a single point on the Bezier surface.
+		</p>
+
+		<figure>
+			<img src="Screenshot 2026-03-03 183232.png" alt="Teapot Bezier surface" style="width:50%"/>
+			<figcaption>teapot.bez rendered using my implementation of Bezier surfaces</figcaption>
+		</figure>
 
 		<h2>Section II: Triangle Meshes and Half-Edge Data Structure</h2>
 
 		<h3>Part 3: Area-weighted vertex normals</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			Part 3 required me to implement <code>Vertex::normal()</code>, a member function of <code>Vertex</code> that
+			calculated an area-weighted normal for this vertex. That is, a normal vector calculated by a weighted average
+			of the adjacent faces' normal vectors, weighted by the faces' areas.
+		</p>
+
+		<p>
+			To implement this, I first evaluated two parallel vectors, one for the face normals and one for their area,
+			populating the vectors for each face adjacent to the current vertex. To calculate the normal of a face,
+			I took the cross product of two vectors formed by the points defining the boundaries of the face, which
+			gave a vector perpendicular to the face, and then normalized this vector to get the face normal. To find the
+			area, I used Heron's formula, calculating the respective side lengths of the triangle face using the magnitude of the
+			vector formed by subtracting sets of the bounding points.
+		</p>
+
+		<p>
+			From these two parallel vectors, I calculated the vertex normal by summing the area vector, allowing me to
+			easily calculate the weight of a given face by dividing its area by this sum. My implementation then multiplies
+			this weight by the corresponding normal in the parallel vector and adds it to the vertex normal. The sum of all
+			these values, normalized, gives the normal vector for this vertex.
+		</p>
+		
+		<p>One use of vertex normals is in Phong shading.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 185538.png" width="350px"/>
+				  <figcaption>teapot.dae with flat shading</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-03 185554.png" width="350px"/>
+				  <figcaption>teapot.dae with Phong shading</figcaption>
+				</td>
+				</td>
+			  </tr>
+			</table>
+		</div>
 
 		<h3>Part 4: Edge flip</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			
+		</p>
 
 		<h3>Part 5: Edge split</h3>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
