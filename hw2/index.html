@@ -55,8 +55,8 @@
 		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw2-meshedit-for_skylar/">github.com/cal-cs184-student/hw2-meshedit-for_skylar/</a>
 
 		<figure>
-			<img src="teapot.png" alt="Teapot" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
+			<img src="teapot.png" alt="Teapot" style="width:40%"/>
+			<figcaption>The Homework 2 Write Up: Now with 10x the Teapots!</figcaption>
 		</figure>
 
 		<!--
@@ -64,7 +64,13 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		<p>
+			In this homework, I implemented many processes necessary for evaluating meshes. Section I explored Bezier curves and 
+			surfaces, where I got a good sense of Casteljau's algorithm and how it can be used to model meshes. Section II focused
+			on using the half-edge data structure to evaluate meshes. In Section II especially, I feel that implementing the processes
+			described in this assignment gave me a very in-depth understanding of how the data structure works and how it can be used
+			to both build and edit meshes.
+		</p>
 
 		<h2>Section I: Bezier Curves and Surfaces</h2>
 
@@ -90,7 +96,7 @@
 			<code>evaluateStep</code> can define a point.
 		</p>
 
-		<p>Casteljau's algorithm evaluates a point on the Bezier curve defined by the six conrol points.</p>
+		<p>Casteljau's algorithm evaluates a point on the Bezier curve defined by the six control points.</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
@@ -168,11 +174,10 @@
 		<p>
 			Casteljau's algorithm for evaluating Bezier curves can be extended to Bezier surfaces by performing the algorithm 
 			first in one dimension and using the calculated result to extend it into the second dimension of the surface. That
-			is, for a 2D grid of points, individual rows of those points can be treated as 1D Bezier curves which we can evaluate
+			is, for a 2D grid of points, individual rows of those points can be treated as 1D Bezier curves for which we can evaluate
 			a point some \(t\) along the curve using Casteljau's algorithm. Then, given a series of evaluated points for each of
 			these rows, we can define a perpendicular 1D Bezier curve, which we can again use Casteljau's algorithm on. Thus,
-			for any two values of \(t\), defined as \((u, v)\), we can evaluate that respective point on the Bezier surface using
-			this method.
+			for any two values of \(t\), defined as \((u, v)\), this method can evaluate the respective point on the Bezier surface.
 		</p>
 
 		<p>
@@ -198,16 +203,16 @@
 		</p>
 
 		<p>
-			To implement this, I first evaluated two parallel vectors, one for the face normals and one for their area,
+			To implement this, I first evaluated two parallel vectors, one for the face normals and one for their areas,
 			populating the vectors for each face adjacent to the current vertex. To calculate the normal of a face,
 			I took the cross product of two vectors formed by the points defining the boundaries of the face, which
 			gave a vector perpendicular to the face, and then normalized this vector to get the face normal. To find the
-			area, I used Heron's formula, calculating the respective side lengths of the triangle face using the magnitude of the
+			area, I used Heron's formula, calculating the respective side lengths of the triangular face using the magnitude of the
 			vector formed by subtracting sets of the bounding points.
 		</p>
 
 		<p>
-			From these two parallel vectors, I calculated the vertex normal by summing the area vector, allowing me to
+			From these two parallel vectors, I calculated the vertex normal by first summing the area vector, allowing me to
 			easily calculate the weight of a given face by dividing its area by this sum. My implementation then multiplies
 			this weight by the corresponding normal in the parallel vector and adds it to the vertex normal. The sum of all
 			these values, normalized, gives the normal vector for this vertex.
@@ -232,28 +237,219 @@
 
 		<h3>Part 4: Edge flip</h3>
 		<p>
-			
+			To implement <code>flipEdge</code> for Part 4, I first confirmed that I wouldn't break any vertex or face
+			half-edge reference by assigning the half-edge of the vertices connecting the edge to unchanging half edges
+			and assigning the half edge of each face to the half edge of the edge I would be flipping. From there, everything
+			I had to reassign was on all of the half edges of the mesh, since none of the half edges corresponding to any of the
+			other mesh objects would be changing (beyond changing their properties, that is).
 		</p>
 
+		<p>
+			I reassigned every pointer in the two flipping half-edges using the provided <code>setNeighbors</code> function. For the
+			bounding half-edges of the mesh, I only reassigned <code>next</code> and <code>face</code> since the <code>edge</code>,
+			<code>vertex</code>, and <code>twin</code> of each bounding half edge were not impacted by the edge being flipped and 
+			thus would not need to be altered.
+		</p>
+
+		<p>
+			One thing I had to consider when implementing this function was the order in which I would change the <code>next</code> pointer
+			on the half-edges. I had to be sure to order them in a way such that I wouldn't 'lose' any half-edge by reassigning
+			the only pointer that I could reach it from. I leveraged the fact that I had direct references to the two half-edges
+			being flipped (given by the half-edge pointer on the provided edge and its twin). First I reassigned the <code>next</code>
+			pointer of <code>half-edge->next()->next()</code> for both flipping edges. That is, the last half-edge of the face. This
+			gave me a reference to the half-edge immediately following the flipping half edges, allowing me to reassign those pointers
+			without losing access to any half-edges. Since the next pointer of those half-edges then goes to the previously third edge,
+			I can access the final set of edges by using <code>half-edge->next()->next()</code> again--as now this series of pointers
+			references a different half-edge--to reassign the final set of pointers.
+		</p>
+
+		<p>teapot.dae before and after some edge flips.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-04 222125.png" width="350px"/>
+				  <figcaption>original</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-04 222409.png" width="350px"/>
+				  <figcaption>after edge flips</figcaption>
+				</td>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
 		<h3>Part 5: Edge split</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			To implement <code>splitEdge</code>, I split the process into two parts. For the first part of my implementation,
+			I focused on splitting the edge, but not the faces. To do this, I created a new vertex whose position was an average
+			of the two vertices on the splitting edge. Then I created a new edge and two new half-edges that would connect an
+			old vertex to the new vertex and reassigned the necessary pointers in the existing edge and half edge to connect
+			the other old vertex to the new vertex. One thing I had to keep in mind for this part was that because I wanted the
+			old half-edges to be across from each other, I couldn't assign their vertices in the same way, as one half-edge left
+			the new vertex and the other entered it. I also had to reassign the <code>next</code> pointer of the edge previously
+			pointing to start.
+		</p>
+
+		<p>
+			For the second part of this process, I created all the necessary new mesh objects to split the two faces into four faces.
+			There were a lot more objects created in this section as I had to make two new faces, two new edges, and four new
+			half-edges. I once again had to be very particular with how I assigned the pointers of mirrored half-edges, as
+			the fact that they were mirrored did not actually create symmetry between the pointers. Many of the existing half-edges
+			also needed to alter their <code>next</code> pointers to accommodate for the four new half-edges, as well as their
+			<code>face</code> pointers, which is a point of debugging I discuss further after the examples below.
+		</p>
+
+		<p>teapot.dae before and after some edge splits.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-04 230246.png" width="350px"/>
+				  <figcaption>original</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-04 225809.png" width="350px"/>
+				  <figcaption>after edge splits</figcaption>
+				</td>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>Edge splits and edge flips can be combined.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-04 230246.png" width="350px"/>
+				  <figcaption>original</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-04 230415.png" width="350px"/>
+				  <figcaption>after edge splits and flips</figcaption>
+				</td>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>
+			One issue I encountered when debugging this process was that if I repeated too many edge splits, faces would disappear.
+			After using the N key to step through the half-edges on cube.dae, I realized that I was forgetting to assign old half-edges
+			to the new faces I created. I was too caught up in assigning all the pointers of the new elements that had to be created
+			by this function and forgot to consider what old elements would need reassignments as well. After I fixed this issue I could
+			repeat edge splits with no issue.
+		</p>
+
+		<figure>
+			<img src="Screenshot 2026-03-01 220833.png" alt="A cube with triangle holes in its surface" style="width:50%"/>
+			<figcaption>Attempting loop subdivision with a faulty <code>splitEdge</code> function.</figcaption>
+		</figure>
 
 		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			In Part 6, I used both <code>splitEdge</code> and <code>flipEdge</code> to implement loop subdivision. The 
+			process of loop subdivision is to first split every edge in the mesh, which I implemented by looping through
+			every edge (that did not connect to a new vertex, to avoid an infinite loop). Then, any new edge that connects
+			a new and old vertex should be flipped. To keep track of whether a vertex was new or old, I amended my implementation
+			of <code>splitEdge</code> to update the <code>isNew</code> flag in the new vertex and edges.
+		</p>
 
-		<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			In addition to adding new triangles, for proper loop subdivision, the positions of all new and old vertices have
+			to be updated based on a specific calculation between the vertex's position (if it had one) and the positions of the
+			surrounding nodes. As was recommended, I made all of these calculations prior to any of the edge splitting and flipping
+			described above, keeping the new position of the vertices in the provided <code>newPosition</code> variable vertices and
+			edges had. Then, after I divided the mesh with <code>splitEdge</code> and <code>flipEdge</code>, I updated the
+			positions of the vertices to these pre-calculated values. This is the most effective way to implement this calculation
+			since the positions of all vertices need to be based on values from the original mesh, so calculating the positions
+			as a mesh is split will lead to improper results. Finally, while updating the vertex positions, I made sure to clear
+			the <code>isNew</code> flags from all vertices and edges so the mesh could be subdivided repeatedly without bugs.
+		</p>
+			
+		<p>
+			Performing subdivision on meshes with sharp edges will gradually round out the sharp edges. The effect
+			can be reduced by pre-splitting any sharp edges you want to preserve in a mesh. This works because loop
+			subdivision calculates the position of a vertex based on the surrounding vertices. Pre-splitting an edge
+			adds an additional vertex to that edge, which increases how much that edge 'contributes' to the upsampled
+			mesh. The images below show the difference pre-splitting sharp edges causes.
+		</p>
 
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+		<p>Pre-splitting's effect on sharp mesh edges. The <text style="font-weight: bold;">right side</text> of the upsampled
+		   pre-processed cube shows the effect the edge-splitting had.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 120101.png" width="350px"/>
+				  <figcaption>original cube mesh</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 120114.png" width="350px"/>
+				  <figcaption>upsampled origial cube with rounded edges</figcaption>
+				</td>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 161124.png" width="350px"/>
+				  <figcaption>edges pre split before second upsampling</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 161224.png" width="350px"/>
+				  <figcaption>upsampled pre-processed cube</figcaption>
+				</td>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>
+			Pre-splitting edges along faces also helps the sharp edges maintain themselves more, since doing so
+			increases the 'flatness' of any faces given new edges, which has the side effect of making
+			edges sharper as well. This can be seen in the images below, which also show how to make an upsampled mesh
+			more symmetric.
+		</p>
+
+		<p>
+			When upsampling this cube mesh, over time it becomes asymmetric. This is again because of how updated
+			vertex positions are calculated in loop subdivision. For existing vertices, the position of the new vertex
+			is calculated based on all vertices connected to the vertex by edges. This means that in the original cube
+			mesh, if a vertex happened to be connected to a vertex along one of the asymmetrically implemented face-splitting
+			edges, those vertices will affect each other's updated positions, while unconnected vertices with the same 
+			spatial relation wouldn't. This is what causes the upsampled mesh to become asymmetric. To remedy this, I can
+			pre-process the cube by splitting the face-splitting edges on all faces of the cube to make them symmetrically
+			connected to the cube's vertices. The images below show the effect this pre-processing has on the upsampled cube.
+		</p>
+
+		<p>Making an updampled cube more symmetric.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 120101.png" width="350px"/>
+				  <figcaption>original cube mesh</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 120114.png" width="350px"/>
+				  <figcaption>upsampled origial mesh</figcaption>
+				</td>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 120151.png" width="350px"/>
+				  <figcaption>cube mesh with edge splits for symmetry across faces</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-03-05 120202.png" width="350px"/>
+				  <figcaption>upsampled pre-processed cube</figcaption>
+				</td>
+				</td>
+			  </tr>
+			</table>
 		</div>
 	</body>
 </html>
