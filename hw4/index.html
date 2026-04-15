@@ -22,21 +22,35 @@
 
 			body {
 				font-family: 'Inter', sans-serif;
+				background-color: #181A1B;
+				color: white; 
+			}
+			a:link {
+				color: skyblue;
+			}
+			a:visited {
+				color: mediumorchid;
+			}
+			code {
+				color: chartreuse;
+			}
+			@media print {
+				code {
+					color: forestgreen;
+				}
 			}
 		</style>
 	</head>
 	<body>
 		<div class="container">
-		<h1>CS184/284A Spring 2025 Homework 4 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<h1>CS184 Spring 2025 Homework 4 Write-Up</h1>
+		<div style="text-align: center;">Names: Skylar Robinson</div>
 
 		<br>
-
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-
+		Link to webpage: <a href="https://cal-cs184-student.github.io/hw-webpages-sdrobinson-rgb/">cal-cs184-student.github.io/hw-webpages-sdrobinson-rgb/</a>
 		<br>
 
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw4-clothsim-skylar-1">github.com/cal-cs184-student/hw4-clothsim-skylar-1</a>
 
 		<figure>
 			<img src="clothsim.png" alt="Cloth draped over sphere" style="width:70%"/>
@@ -51,39 +65,269 @@
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
 
 		<h2>Part 1: Masses and springs</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			For the first part of this homework, I implemented the function <code>buildGrid</code> in the <code>Cloth</code> struct.
+			This function first populates a grid of <code>PointMass</code> objects to represent the cloth, and then adds various
+			types of <code>Spring</code> objects connecting these points.
+		</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+		<p>pinned2.json wireframe shows my point masses and springs.</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-04-14 212338.png" width="350px"/>
+				  <figcaption>whole cloth</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-04-14 212356.png" width="350px"/>
+				  <figcaption>close up</figcaption>
 				</td>
 			  </tr>
+			</table>
+		</div>
+
+		<p>
+			There were three types of springs I used to build the wireframe of the cloth, <code>STRUCTURAL</code>,  <code>SHEARING</code>,
+			and <code>BENDING</code>. Structural and bending springs connect point masses to their vertical and horizontal neighbors
+			one and two vertices away, respectively. Shearing springs connect vertices diagonal to each other. The result of these
+			distinct types of springs can be seen in the images below.
+		</p>
+
+		<p>pinned2.json wireframe with various spring constraints showing.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-04-14 212402.png" width="300px"/>
+				  <figcaption>no shearing constraints</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="clothsim.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Screenshot 2026-04-14 212408.png" width="300px"/>
+				  <figcaption>only shearing constraints</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-14 212356.png" width="300px"/>
+				  <figcaption>all constraints</figcaption>
 				</td>
 			  </tr>
 			</table>
 		</div>
 
 		<h2>Part 2: Simulation via numerical integration</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			In Part 2, I implemented the actual simulation of the cloth mesh. To do so, I implemented the function <code>Cloth::simulate</code>,
+			which re-calculates the positions of the point masses every frame. For basic cloth simulation, <code>simulate</code> first sums the 
+			forces acting on a point mass as the sum of all external forces and all spring forces. It then uses this total force along
+			with Verlet integration to calculate and update the position of point mass. My implementation of <code>simulate</code> uses 
+			a for loop to do this across all point masses in the <code>Cloth</code>'s <code>point_mass</code> vector. Point masses
+			connected by springs also cannot move too far away from each other, constrained by 10% more than the rest length of the connecting
+			spring.
+		</p>
+
+		<figure>
+			<img src="Screenshot 2026-04-12 175645.png" alt="Cloth hanging from 4 pinned corners" style="width:70%"/>
+			<figcaption>pinned4.json, simulated, in its final resting state with normal shading and default parameters</figcaption>
+		</figure>
+
+		<p>
+			A simulated cloth has many attributes that contribute to the way it behaves. Below are the effects of editing some of them.
+		</p>
+
+		<p>pinned2.json with various <code>ks</code> values and normal shading.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173237.png" width="300px"/>
+				  <figcaption>low <code>ks</code></figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173050.png" width="300px"/>
+				  <figcaption>default <code>ks</code></figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173318.png" width="300px"/>
+				  <figcaption>high <code>ks</code></figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>
+			<code>ks</code> is the spring constant, which is used when calculating the force a spring is exerting on a point mass. When 
+			<code>ks</code> is low, this means the springs exert less force, causing the cloth to droop more when simulated. On the other
+			hand, a high <code>ks</code> results in stronger springs, so the cloth will behave more stiffly and droop less. These effects
+			can be seen in the pictures above. Altering <code>ks</code> had little effect on how the cloth behaved when falling into its               
+			final resting position, except some minor differences in intermediate positions that reflected the final positions shown above.
+		</p>
+
+		<p>pinned2.json with various <code>density</code> values and normal shading.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173413.png" width="300px"/>
+				  <figcaption>low <code>density</code></figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173050.png" width="300px"/>
+				  <figcaption>default <code>density</code></figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173432.png" width="300px"/>
+				  <figcaption>high <code>density</code></figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>
+			Changing the <code>density</code> of a cloth impacts the mass (weight) of the point masses that make it up. Thus,
+			decreasing the <code>density</code> will cause gravity to have less of an effect on the cloth, resulting in the first
+			image above. In the reverse direction, increasing the <code>density</code> causes gravity to have a higher effect,
+			which leads to the droopier cloth shown in the third image above. Interestingly, altering <code>density</code> has a somewhat
+			opposite effect to altering <code>ks</code>. This makes sense, though, as these two values contribute to the forces pulling
+			the cloth down and holding the cloth up respectively, so decreasing one will have a similar effect as increasing the other.
+			Much like with altering <code>ks</code>, the differences in <code>density</code> had minimal effects on the cloth's 
+			behavior as it got to the final resting points shown.
+		</p>
+
+		<p>pinned2.json with different <code>damping</code> values and normal shading.</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173542.png" width="350px"/>
+				  <figcaption>low damping</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173608.png" width="350px"/>
+				  <figcaption>low damping final position</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173637.png" width="350px"/>
+				  <figcaption>high damping</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 173702.png" width="350px"/>
+				  <figcaption>high damping final position</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>
+			<code>damping</code> is the small constant used to slow down a cloth's velocity over time. This is how the simulation
+			accounts for friction and other non-conservative forces. Conversely to the prior two variables we explored, altering
+			the <code>damping</code> value of a simulation has little to no effect on the eventual final resting point of the cloth,
+			instead altering only the path it takes to get there. The exception to this is that a cloth with zero <code>damping</code>
+			could potentially move forever, resulting in no final position. Decreasing the <code>damping</code> value causes the 
+			cloth to conserve more speed, so it will swing back and forth multiple times before coming to rest. On the other hand,
+			a cloth with high <code>damping</code> will lose a lot of its speed in every frame, causing it to 'float' down to its
+			final position. Both of these effects can be observed in the screenshots above.
+		</p>
 
 		<h2>Part 3: Handling collisions with other objects</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			Part 3 of this homework was to give the cloth simulator the ability to simulate collisions with sphere and plane objects.
+			In order to accomplish this, I had to implement a <code>collide</code> function for both <code>Sphere</code> and 
+			<code>Plane</code> objects, and call these functions in the <code>simulate</code> function of the cloth. Both 
+			<code>collide</code> functions take a point mass by reference, allowing them to alter its position if a collision 
+			is detected.
+		</p>
+
+		<p>
+			The first collision function I implemented was for the <code>Sphere</code> collision object. To determine if 
+			a collision has occurred, my implementation compares the distance between the current position of the point
+			mass and the sphere's origin with the radius of the sphere. If the distance between the two points is less than
+			the sphere's radius, this indicates a collision and the position of the point mass must be 'bumped' up to
+			be just above the sphere. The point mass's tangent point with the sphere is given by where the point mass would
+			hit the surface of the sphere if it travelled away from the origin in the direction of the path connecting the 
+			point's 'position' and the sphere's origin. The function then computes a correction vector as the correction that
+			would need to be applied to the point mass's stored <code>last_position</code> to get to this tangent point. The new
+			position of the point mass with the sphere collision handled is the <code>last_position</code> plus this correction 
+			vector scaled down by friction.
+		</p>
+
+		<p>
+			For collisions with planes, a collision occurs when a point mass's <code>position</code> is on the opposite 
+			side of the plane as its <code>last_position</code>. I can mathematically compute this by comparing the dot products
+			of these two position vectors and the normal vector of the planes. If the signs of these two dot products don't match,
+			it means the two positions are on opposite sides of the plane and a collision has occurred. To handle a plane collision,
+			I computed the tangent point using the 't' value given by the equation for ray intersection with a plane (where the 'ray'
+			is defined by an origin at the point mass's <code>last_position</code> and the direction is the direction between 
+			the <code>last_position</code> and the <code>position</code>). I plugged this t-value into my fake ray to get the intersection 
+			point. My implementation then pushes this point up off the plane by a small amount given by the provided variable 
+			<code>SURFACE_OFFSET</code> and computes the correction vector that would need to be added to <code>last_position</code>
+			to get to this point. The point mass's new position is the <code>last_position</code> plus this correction vector
+			scaled down by friction.
+		</p>
+
+		<p>
+			The images below show my demonstrate my collision handling implementations in action. In addition to this, the 
+			below set of images shows what a cloth draped over a sphere looks like with various values of <code>ks</code>. 
+			The results here mirror our experimentation with <code>ks</code> in the previous part, with the additional observation
+			that when <code>ks</code> is low and the spring constraints exert less force on the cloth, the silhouette of the 
+			sphere becomes much more pronounced, and increasing <code>ks</code> has the opposite effect. This can be explained 
+			by the fact that the collision handling with the sphere object will constrain the point masses making up the cloth 
+			for any point masses that want to fall through the sphere. A cloth where the springs have less of an effect on the 
+			forces pulling the point masses up will be constrained more heavily by the sphere collision handling, which will cause 
+			it to mirror the appearance of the sphere. In the other direction, increasing <code>ks</code> will obscure the sphere,
+			as the more the spring forces pull the cloth up, the less point masses will find themselves attempting to collide with
+			the sphere.
+		</p>
+
+		<p>sphere.json demonstrates my implementation of sphere collision, as well as how the 
+			cloth resting on the sphere behaves with different values of <code>ks</code>. 
+		</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 183017.png" width="300px"/>
+				  <figcaption><code>ks</code> = 500</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 182956.png" width="300px"/>
+				  <figcaption><code>ks</code> = 5000</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-12 183032.png" width="300px"/>
+				  <figcaption><code>ks</code> = 50000</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p>plane.json demonstrates my implementation of plane collision:
+			 the cloth rests peacefully on the plane as a wireframe, with normal shading, and in ourple*. 
+		</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-14 230120.png" width="300px"/>
+				  <figcaption>wireframe</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-14 230129.png" width="300px"/>
+				  <figcaption>normal shading</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Screenshot 2026-04-14 231950.png" width="300px"/>
+				  <figcaption>ourple (indigo?)</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<p style="font-size: small">
+			*editor's note: ourple is a purposeful misspelling of purple, in reference to the meme phrase 
+			<a href="https://knowyourmeme.com/memes/why-he-ourple">"why he ourple?"</a> Please do not deduct points for this.
+		</p>
 
 		<h2>Part 4: Handling self-collisions</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -94,16 +338,6 @@
 		<h2>(Optional) Part 6: Extra Credit - Additional cloth simulation features!</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 		
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
 		</div>
 	</body>
 </html>
